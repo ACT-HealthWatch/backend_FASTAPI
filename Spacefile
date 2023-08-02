@@ -1,0 +1,9 @@
+# Spacefile Docs: https://go.deta.dev/docs/spacefile/v0
+v: 0
+micros:
+  - name: fastapi-deta
+    src: .
+    engine: python3.8
+    run: pip3 install -r requirements.txt && uvicorn main:app
+    public_routes:
+      - "/*"

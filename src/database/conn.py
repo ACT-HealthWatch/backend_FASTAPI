@@ -12,9 +12,9 @@ class CONNECT:
 
     def __init__(self):
         # rds settings
-        self.USERNAME: str = "dev"
-        self.PASSWORD: str = "localplayer0"
-        self.ENDPOINT: str = "localhost"
+        self.USERNAME: str = "localplayer0"
+        self.PASSWORD: str = "hello_neighbor123"
+        self.ENDPOINT: str = "hoshi-kirby.xyz"
         self.DBNAME: str = "develop"
         self.PORT: str = "3306"
         self.rds = create_engine(

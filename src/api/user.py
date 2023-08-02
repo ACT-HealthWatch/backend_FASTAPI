@@ -26,7 +26,7 @@ async def create(user: User):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-@app.get("/api/v1/user/list", description="유저 리스트", status_code=status.HTTP_200_OK, tags=["user"])
+@app.get("/api/v1/user/login", description="유저 로그인", status_code=status.HTTP_200_OK, tags=["user"])
 async def login(id: str, pw: str):
     try:
         with sessionFix() as session:
