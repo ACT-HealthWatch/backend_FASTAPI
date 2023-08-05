@@ -1,9 +1,11 @@
 from fastapi import FastAPI
+from fastapi.security import OAuth2PasswordBearer
 from starlette.middleware.cors import CORSMiddleware
 
 from src.database.conn import Session
 from contextlib import contextmanager
 
+oauth2Schema = OAuth2PasswordBearer(tokenUrl="/api/v1/user/token")
 tags_metadata = [
     {
         "name": "user",
