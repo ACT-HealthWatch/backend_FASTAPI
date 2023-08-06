@@ -8,9 +8,8 @@ services:
     ports:
       - "8000:8000"
     networks:
-      - os-dev
+      - healthwatch
 
 networks:
-  os-dev:
-    external: true
-    name: os-dev
+  healthwatch:
+    name: healthwatch
