@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile
+    command: uvicorn app:app --port 8000 --reload
     ports:
       - "8000:8000"
     networks:
