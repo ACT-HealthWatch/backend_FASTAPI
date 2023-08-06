@@ -1,18 +1,12 @@
-FROM golang:1.19.4 as builder
+FROM python:3.8 as builder
 
 # Setup working directory
 WORKDIR /app
 COPY . .
 
 # Build
+RUN python3 -m venv backend && . backend/bin/activate
 RUN pip3 install -r requirements.txt
 
-FROM ubuntu:latest
-WORKDIR /app
-COPY . .
-
-# built binary
-COPY --from=builder /app/account .
-
-EXPOSE 5000
-CMD ["uvicorn", "app:app", "--port", "5000", "--workers", "4"]
+EXPOSE 8000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

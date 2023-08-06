@@ -1,0 +1,15 @@
+version: "3"
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - os-dev
+
+networks:
+  os-dev:
+    external: true
+    name: os-dev

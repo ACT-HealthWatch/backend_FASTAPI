@@ -10,6 +10,10 @@ tags_metadata = [
     {
         "name": "user",
         "description": "Operations with users",
+    },
+    {
+        "name": "media",
+        "description": "Operations with media",
     }
 ]
 
