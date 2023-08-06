@@ -10,6 +10,7 @@ from typing_extensions import Annotated
 from src.database.user.user import *
 from src.database.user.crud import *
 from src.service.middleware import *
+from src.service.hash import *
 
 def generate_random_string(length):
     characters = string.ascii_letters + string.digits
@@ -49,7 +50,7 @@ async def image_test(file: UploadFile):
             400: { "description": "실패" }
         }, tags=["media"]
     )
-async def video(user: User, form_data: Annotated[OAuth2PasswordRequestForm, Depends()], file: UploadFile):
+async def video(user: User, sessionUID: Annotated[User, Depends(getCurrentUser)], file: UploadFile):
     DIR = "static/videos/"
     try:
         content = await file.read()
@@ -70,15 +71,19 @@ async def video(user: User, form_data: Annotated[OAuth2PasswordRequestForm, Depe
             400: { "description": "실패" }
         }, tags=["user"]
     )
-async def image(user: User):
+async def image(user: User, sessionUID: Annotated[User, Depends(getCurrentUser)], file: UploadFile):
+    DIR = "static/images/"
     try:
-        with sessionFix() as session:
-            new_user = UserTable(
-                user_name=user.user_name,
-                user_id=user.user_id,
-                user_pw=user.user_pw,
-            )
-            result = UserCommands().create(session, new_user)
-            return {"message": result}
+        content = await file.read()
+        fileName = f"{file.filename}"
+
+        with open(os.path.join(DIR, fileName), "wb") as fp:
+            fp.write(content)  # 서버 로컬 스토리지에 이미지 저장 (쓰기)
+        
+        # 경로 + 파일 반환
+        return {
+            "filename": fileName,
+            "path": os.path.join(DIR, fileName)
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

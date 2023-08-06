@@ -8,6 +8,19 @@ from src.database.user.crud import *
 from src.service.middleware import *
 from src.service.hash import *
 
+@app.get(
+        "/api/v1/user/list", description="유저 목록 조회",
+        status_code=status.HTTP_200_OK, response_class=JSONResponse,
+        responses={
+            200: { "description": "성공" },
+            400: { "description": "실패" }
+        }, tags=["user"]
+    )
+async def users():
+    with sessionFix() as session:
+        user = UserCommands().read(session, UserTable)
+        return user
+
 @app.post(
         "/api/v1/user/register", description="유저 등록",
         status_code=status.HTTP_200_OK, response_class=JSONResponse,
@@ -19,6 +32,7 @@ from src.service.hash import *
 async def create(user: User):
     try:
         with sessionFix() as session:
+            user.user_pw = hashData.get_password_hash(user.user_pw)
             new_user = UserTable(
                 user_name=user.user_name,
                 user_id=user.user_id,
@@ -33,12 +47,37 @@ async def create(user: User):
 async def login(id: str, pw: str):
     try:
         with sessionFix() as session:
-            result = UserCommands().read(session, UserTable, id, pw)
+            hashedPw = hashData.get_password_hash(pw)
+            result = UserCommands().read(session, UserTable, id, hashedPw)
             if result == None:
                 raise HTTPException(status_code=400, detail="아이디 또는 비밀번호가 틀렸습니다.")
-            return result
+            form_data = OAuth2PasswordRequestForm(username=id, password=pw)
+            response = await token(form_data)
+            return response
+        
     except Exception as e:
         return {"message": str(e)}
+    
+@app.get(
+        "/api/v1/user/logout", description="유저 로그아웃",
+        status_code=status.HTTP_200_OK, response_class=JSONResponse,
+        responses={
+            200: { "description": "성공" },
+            400: { "description": "실패" },
+            401: { "description": "권한 없음" }
+        }, tags=["user"]
+    )
+async def logout(sessionUID: Annotated[User, Depends(getCurrentUser)]):
+    try:
+        # redis에서도 삭제
+        hashData.delete_user_token(sessionUID)
+
+        return {"message": "success"}
+    except HTTPException as e:
+        if HTTPException.status_code == 401:
+            return {"message": "unauthorized"}
+        else:
+            HTTPException(status_code=400, detail=str(e))
     
 @app.post(
         "/api/v1/user/token", description="유저 토큰 조회",
@@ -59,5 +98,6 @@ async def token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
                 return {"access_token": access_token, "token_type": "bearer"}
             else:
                 return {"message": "비밀번호가 일치하지 않습니다."}
-    except Exception:
+    except Exception as e:
+        print(str(e))
         return {"message": "로그인에 실패했습니다."}

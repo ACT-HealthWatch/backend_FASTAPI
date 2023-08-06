@@ -23,8 +23,6 @@ class UserCommands:
                 where.user_name: target.user_name,
                 where.user_id: target.user_id,
                 where.user_pw: target.user_pw,
-                where.user_email: target.user_email,
-                where.user_phone: target.user_phone
             })
             tmpSession.commit()
 

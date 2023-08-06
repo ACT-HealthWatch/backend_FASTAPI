@@ -1,6 +1,7 @@
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
+from src.service.middleware import *
 from src.api.user import *
 from src.api.media import *
 from src.database.user.user import *
