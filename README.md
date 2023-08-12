@@ -6,6 +6,7 @@ tested: ![Tested](https://img.shields.io/badge/Arch_Linux-1793D1?style=for-the-b
 
 ### Backend Installation  
 Manual with docker:  
+<https://hub.docker.com/r/lavi02/healthwatch-server/tags>  
 
 ```shell
 docker network create healthwatch  
