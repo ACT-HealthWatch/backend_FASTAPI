@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile
+    image: lavi02/healthwatch-server:latest
     command: uvicorn app:app --port 8000 --reload
     ports:
       - "8000:8000"
