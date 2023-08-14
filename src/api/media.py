@@ -2,6 +2,7 @@ import random
 import string
 import os
 
+from datetime import date
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import HTTPException, status, UploadFile, File, Depends
@@ -50,17 +51,25 @@ async def image_test(file: UploadFile):
             400: { "description": "실패" }
         }, tags=["media"]
     )
-async def video(user: User, sessionUID: Annotated[User, Depends(getCurrentUser)], file: UploadFile):
+async def video(file: UploadFile, sessionUID: Annotated[str, Depends(get_authenticated_user)]):
     DIR = "static/videos/"
     try:
         content = await file.read()
-        fileName = f"{user.user_id}_{file.filename}_{generate_random_string(8)}.{os.path.splitext(file.filename)[-1]}"
+        user_id = sessionUID
+        extension = os.path.splitext(file.filename)[-1]
+        # 파일명 
+        fileName = f"{user_id}_videos_{date.today().strftime('%Y%m%d')}{extension}"
 
         with open(os.path.join(DIR, fileName), "wb") as fp:
             fp.write(content)  # 서버 로컬 스토리지에 이미지 저장 (쓰기)
-        return {"filename": fileName}
+        
+        # 경로 + 파일 반환
+        return JSONResponse(status_code=200, content={
+            "filename": fileName,
+            "path": os.path.join(DIR, fileName)
+        })
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return JSONResponse(status_code=400, content={"message": str(e)})
 
     
 @app.post(
@@ -69,21 +78,24 @@ async def video(user: User, sessionUID: Annotated[User, Depends(getCurrentUser)]
         responses={
             200: { "description": "성공" },
             400: { "description": "실패" }
-        }, tags=["user"]
+        }, tags=["media"]
     )
-async def image(user: User, sessionUID: Annotated[User, Depends(getCurrentUser)], file: UploadFile):
+async def video(file: UploadFile, sessionUID: Annotated[str, Depends(get_authenticated_user)]):
     DIR = "static/images/"
     try:
         content = await file.read()
-        fileName = f"{file.filename}"
+        user_id = sessionUID
+        extension = os.path.splitext(file.filename)[-1]
+        # 파일명 
+        fileName = f"{user_id}_videos_{date.today().strftime('%Y%m%d')}{extension}"
 
         with open(os.path.join(DIR, fileName), "wb") as fp:
             fp.write(content)  # 서버 로컬 스토리지에 이미지 저장 (쓰기)
         
         # 경로 + 파일 반환
-        return {
+        return JSONResponse(status_code=200, content={
             "filename": fileName,
             "path": os.path.join(DIR, fileName)
-        }
+        })
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return JSONResponse(status_code=400, content={"message": str(e)})

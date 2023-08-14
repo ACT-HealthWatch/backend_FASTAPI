@@ -1,10 +1,13 @@
 from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordBearer
+
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from src.database.conn import Session
 from contextlib import contextmanager
 
+hashCode = "Hello_neighbor"
 oauth2Schema = OAuth2PasswordBearer(tokenUrl="/api/v1/user/token")
 tags_metadata = [
     {
@@ -21,8 +24,8 @@ app = FastAPI(
     title="Document for healthwatch API",
     version="1.0",
     license_info={
-        "name": "Apache 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
+        "name": "GPL-2.0",
+        "url": "https://opensource.org/license/gpl-2-0/",
     }, openapi_tags=tags_metadata
 )
 
@@ -32,6 +35,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+app.add_middleware(SessionMiddleware, secret_key=hashCode)
 
 @contextmanager
 def sessionFix():

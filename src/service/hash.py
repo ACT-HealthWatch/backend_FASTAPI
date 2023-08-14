@@ -7,7 +7,8 @@ from typing import Union
 from typing_extensions import Annotated
 from jose import JWTError, jwt
 
-from fastapi import Depends, HTTPException, status, JSONResponse
+from fastapi import Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from src.service.middleware import *
 from src.database.user.user import *
 from src.database.user.crud import *
@@ -16,6 +17,7 @@ secret_key = urandom(32)
 hashCode = "Hello_neighbor"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440
+user_sessions = {}
 
 class TokenData(BaseModel):
     access_token: str
@@ -23,7 +25,21 @@ class TokenData(BaseModel):
 
 class UserToken(BaseModel):
     username: Union[str, None] = None
-    is_valid: Union[bool, None] = True
+    access_token: Union[str, None] = None
+
+class SessionManager():
+    @staticmethod
+    def create_user_session(user_id: str, token: str):
+        user_sessions[user_id] = token
+
+    @staticmethod
+    def delete_user_session(user_id: str):
+        user_sessions.pop(user_id, None)
+
+    @staticmethod
+    def get_user_session(user_id: str):
+        print(user_sessions)
+        return user_sessions.get(user_id)
 
 class hashData():
     @staticmethod
@@ -59,7 +75,7 @@ class hashData():
                 user_id: str = payload.get("sub")
                 if user_id is None:
                     raise credentialsException
-                token_data = UserToken(username=user_id)
+                token_data = UserToken(username=user_id, access_token=token)
             except JWTError:
                 raise credentialsException
             
@@ -68,10 +84,12 @@ class hashData():
                 raise credentialsException
             return token_data
         
-async def getCurrentUser(
-        token: Annotated[User, Depends(hashData().verify_token)]
-    ):
-    if token.is_valid:
-        return token
-    else:
-        return JSONResponse(status_code=400, content={"message": "invalid credentials"})
+async def get_authenticated_user(token: Annotated[UserToken, Depends(hashData().verify_token)]):
+    user_id = token.username
+    stored_token = SessionManager.get_user_session(user_id)
+
+    if stored_token is None:
+        return {
+            "message": "token is not valid"
+        }
+    return user_id
