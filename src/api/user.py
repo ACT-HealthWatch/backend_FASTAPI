@@ -41,7 +41,7 @@ async def create(user: User):
             result = UserCommands().create(session, new_user)
             return {"message": result}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return JSONResponse(status_code=400, content={"message": "invalid input data."})
     
 @app.get("/api/v1/user/login", description="유저 로그인", status_code=status.HTTP_200_OK, tags=["user"])
 async def login(id: str, pw: str):
@@ -50,13 +50,13 @@ async def login(id: str, pw: str):
             hashedPw = hashData.get_password_hash(pw)
             result = UserCommands().read(session, UserTable, id, hashedPw)
             if result == None:
-                raise HTTPException(status_code=400, detail="아이디 또는 비밀번호가 틀렸습니다.")
+                return JSONResponse(status_code=400, content={"message": "invalid user_id or user_pw."})
             form_data = OAuth2PasswordRequestForm(username=id, password=pw)
             response = await token(form_data)
-            return response
+            return JSONResponse(status_code=200, content=response)
         
-    except Exception as e:
-        return {"message": str(e)}
+    except Exception:
+        return JSONResponse(status_code=400, content={"message": "invalid user_id or user_pw."})
     
 @app.get(
         "/api/v1/user/logout", description="유저 로그아웃",
@@ -72,12 +72,9 @@ async def logout(sessionUID: Annotated[User, Depends(getCurrentUser)]):
         # redis에서도 삭제
         hashData.delete_user_token(sessionUID)
 
-        return {"message": "success"}
-    except HTTPException as e:
-        if HTTPException.status_code == 401:
-            return {"message": "unauthorized"}
-        else:
-            HTTPException(status_code=400, detail=str(e))
+        return JSONResponse(status_code=200, content={"message": "success"})
+    except HTTPException:
+        return JSONResponse(status_code=401, content={"message": "unauthorized"})
     
 @app.post(
         "/api/v1/user/token", description="유저 토큰 조회",
@@ -88,16 +85,15 @@ async def token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
         with sessionFix() as session:
             user = UserCommands().read(session, UserTable, id=form_data.username)
             if user is None:
-                return {"message": "유저가 존재하지 않습니다."}
+                return JSONResponse(status_code=400, content={"message": "invalid user_id or user_pw."})
             isUser = hashData.verify_password(form_data.password, user.user_pw)
             if isUser:
                 access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
                 access_token = hashData.create_user_token(
                     data={"sub": user.user_id}, expires_delta=access_token_expires
                 )
-                return {"access_token": access_token, "token_type": "bearer"}
+                return JSONResponse(status_code=200, content={"access_token": access_token, "token_type": "bearer"})
             else:
-                return {"message": "비밀번호가 일치하지 않습니다."}
+                return JSONResponse(status_code=400, content={"message": "invalid user_id or user_pw."})
     except Exception as e:
-        print(str(e))
-        return {"message": "로그인에 실패했습니다."}
+        return JSONResponse(status_code=400, content={"message": "invalid input data."})

@@ -7,7 +7,7 @@ from typing import Union
 from typing_extensions import Annotated
 from jose import JWTError, jwt
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, JSONResponse
 from src.service.middleware import *
 from src.database.user.user import *
 from src.database.user.crud import *
@@ -74,4 +74,4 @@ async def getCurrentUser(
     if token.is_valid:
         return token
     else:
-        raise HTTPException(status_code=400, detail="Invalid token")
+        return JSONResponse(status_code=400, content={"message": "invalid credentials"})
