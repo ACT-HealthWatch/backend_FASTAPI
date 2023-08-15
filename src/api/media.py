@@ -3,6 +3,7 @@ import string
 import os
 
 from datetime import date
+import requests
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import HTTPException, status, UploadFile, File, Depends
@@ -13,6 +14,7 @@ from src.database.user.crud import *
 from src.service.middleware import *
 from src.service.hash import *
 
+GATE = "https://mlops-act-e4a7da35a259.herokuapp.com/"
 def generate_random_string(length):
     characters = string.ascii_letters + string.digits
     random_string = ''.join(random.choice(characters) for _ in range(length))
@@ -57,16 +59,22 @@ async def video(file: UploadFile, sessionUID: Annotated[str, Depends(get_authent
         content = await file.read()
         user_id = sessionUID
         extension = os.path.splitext(file.filename)[-1]
-        # 파일명 
+        
+        apiResult = requests.post(GATE + "api/v1/face/detect", files={"image": content})
+        if apiResult.status_code != 200:
+            return JSONResponse(status_code=400, content={"message": "얼굴 인식 실패"})
+        
+        result = apiResult.json()["result"]
         fileName = f"{user_id}_videos_{date.today().strftime('%Y%m%d')}{extension}"
 
         with open(os.path.join(DIR, fileName), "wb") as fp:
-            fp.write(content)  # 서버 로컬 스토리지에 이미지 저장 (쓰기)
+            fp.write(content) 
         
         # 경로 + 파일 반환
         return JSONResponse(status_code=200, content={
             "filename": fileName,
-            "path": os.path.join(DIR, fileName)
+            "path": os.path.join(DIR, fileName),
+            "result": result
         })
     except Exception as e:
         return JSONResponse(status_code=400, content={"message": str(e)})
@@ -80,22 +88,27 @@ async def video(file: UploadFile, sessionUID: Annotated[str, Depends(get_authent
             400: { "description": "실패" }
         }, tags=["media"]
     )
-async def video(file: UploadFile, sessionUID: Annotated[str, Depends(get_authenticated_user)]):
+async def image(file: UploadFile, sessionUID: Annotated[str, Depends(get_authenticated_user)]):
     DIR = "static/images/"
     try:
         content = await file.read()
         user_id = sessionUID
         extension = os.path.splitext(file.filename)[-1]
         # 파일명 
+        apiResult = requests.post(GATE + "api/v1/face/detect", files={"image": content})
+        if apiResult.status_code != 200:
+            return JSONResponse(status_code=400, content={"message": "얼굴 인식 실패"})
+        
+        result = apiResult.json()["result"]
         fileName = f"{user_id}_videos_{date.today().strftime('%Y%m%d')}{extension}"
-
         with open(os.path.join(DIR, fileName), "wb") as fp:
-            fp.write(content)  # 서버 로컬 스토리지에 이미지 저장 (쓰기)
+            fp.write(content)
         
         # 경로 + 파일 반환
         return JSONResponse(status_code=200, content={
             "filename": fileName,
-            "path": os.path.join(DIR, fileName)
+            "path": os.path.join(DIR, fileName),
+            "result": result
         })
     except Exception as e:
         return JSONResponse(status_code=400, content={"message": str(e)})

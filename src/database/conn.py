@@ -18,7 +18,14 @@ class CONNECT:
         # self.ENDPOINT: str = "hoshi-kirby.xyz"
         # self.DBNAME: str = "develop"
         # self.PORT: str = "3306"
-        self.url_db = os.environ.get("JAWSDB_URL")
+        # self.url_db = os.environ.get("JAWSDB_URL")
+        self.USERNAME: str = "localplayer0"
+        self.PASSWORD: str = "hello_neighbor123"
+        self.ENDPOINT: str = "hoshi-kirby.xyz"
+        self.DBNAME: str = "develop"
+        self.PORT: str = "3306"
+        self.url_db = f"mysql+pymysql://{self.USERNAME}:{self.PASSWORD}@{self.ENDPOINT}:{self.PORT}/{self.DBNAME}"
+        
         self.rds = create_engine(
                 self.url_db,
                 echo=True
