@@ -14,7 +14,8 @@ from src.database.user.crud import *
 from src.service.middleware import *
 from src.service.hash import *
 
-GATE = "https://mlops-act-e4a7da35a259.herokuapp.com/"
+GATE = "http://43.200.220.115:5000/"
+#GATE = "http://localhost:5000/"
 def generate_random_string(length):
     characters = string.ascii_letters + string.digits
     random_string = ''.join(random.choice(characters) for _ in range(length))
@@ -60,7 +61,13 @@ async def video(file: UploadFile, sessionUID: Annotated[str, Depends(get_authent
         user_id = sessionUID
         extension = os.path.splitext(file.filename)[-1]
         
-        apiResult = requests.post(GATE + "api/v1/face/detect", files={"image": content})
+        apiResult = requests.post(
+            GATE + "predict/video",
+            files={
+                "video": ("filename" + extension, content, "video/" + extension[1:])
+            },
+            headers={"Accept": "application/json"}
+        )
         if apiResult.status_code != 200:
             return JSONResponse(status_code=400, content={"message": "얼굴 인식 실패"})
         
@@ -95,7 +102,7 @@ async def image(file: UploadFile, sessionUID: Annotated[str, Depends(get_authent
         user_id = sessionUID
         extension = os.path.splitext(file.filename)[-1]
         # 파일명 
-        apiResult = requests.post(GATE + "api/v1/face/detect", files={"image": content})
+        apiResult = requests.post(GATE + "predict/image", files={"image": ("filename"+extension, content, "image/"+extension)}, headers={"Accept": "application/json"})
         if apiResult.status_code != 200:
             return JSONResponse(status_code=400, content={"message": "얼굴 인식 실패"})
         
