@@ -13,7 +13,7 @@ class nutriTable(Base):  # 유저 테이블
     carbohydrate = Column(INTEGER, nullable=False)  # 탄수화물
     protein = Column(INTEGER, nullable=False)  # 단백질
     fat = Column(INTEGER, nullable=False)  # 지방
-    generated_time = Column(DateTime, default=datetime.now(
+    generated_time = Column(DateTime, primary_key=True, default=datetime.now(
         pytz.timezone('Asia/Seoul')))  # 생성시간
 
 
