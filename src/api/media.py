@@ -109,7 +109,7 @@ async def image(file: UploadFile, sessionUID: Annotated[str, Depends(get_authent
         apiResult = requests.post(GATE + "predict/image", files={"image": (
             "filename"+extension, content, "image/"+extension)}, headers={"Accept": "application/json"})
         if apiResult.status_code != 200:
-            return JSONResponse(status_code=400, content={"message": str(apiResult.json())})
+            return JSONResponse(status_code=400, content={"message": "얼굴 인식 실패"})
 
         result = apiResult.json()["result"]
         fileName = f"{user_id}_videos_{date.today().strftime('%Y%m%d')}{extension}"
