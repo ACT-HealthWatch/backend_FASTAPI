@@ -16,19 +16,22 @@ from src.service.hash import *
 
 GATE = "http://43.200.220.115:5000/"
 #GATE = "http://localhost:5000/"
+
+
 def generate_random_string(length):
     characters = string.ascii_letters + string.digits
     random_string = ''.join(random.choice(characters) for _ in range(length))
     return random_string
 
+
 @app.post(
-        "/api/v1/upload/test/image", description="영상 업로드 테스트",
-        status_code=status.HTTP_200_OK, response_class=JSONResponse,
-        responses={
-            200: { "description": "성공" },
-            400: { "description": "실패" }
-        }, tags=["media"]
-    )
+    "/api/v1/upload/test/image", description="영상 업로드 테스트",
+    status_code=status.HTTP_200_OK, response_class=JSONResponse,
+    responses={
+        200: {"description": "성공"},
+        400: {"description": "실패"}
+    }, tags=["media"]
+)
 async def image_test(file: UploadFile):
     DIR = "static/images/"
     try:
@@ -37,7 +40,7 @@ async def image_test(file: UploadFile):
 
         with open(os.path.join(DIR, fileName), "wb") as fp:
             fp.write(content)  # 서버 로컬 스토리지에 이미지 저장 (쓰기)
-        
+
         # 경로 + 파일 반환
         return {
             "filename": fileName,
@@ -46,21 +49,22 @@ async def image_test(file: UploadFile):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @app.post(
-        "/api/v1/upload/video", description="영상 업로드",
-        status_code=status.HTTP_200_OK, response_class=JSONResponse,
-        responses={
-            200: { "description": "성공" },
-            400: { "description": "실패" }
-        }, tags=["media"]
-    )
+    "/api/v1/upload/video", description="영상 업로드",
+    status_code=status.HTTP_200_OK, response_class=JSONResponse,
+    responses={
+        200: {"description": "성공"},
+        400: {"description": "실패"}
+    }, tags=["media"]
+)
 async def video(file: UploadFile, sessionUID: Annotated[str, Depends(get_authenticated_user)]):
     DIR = "static/videos/"
     try:
         content = await file.read()
         user_id = sessionUID
         extension = os.path.splitext(file.filename)[-1]
-        
+
         apiResult = requests.post(
             GATE + "predict/video",
             files={
@@ -70,13 +74,13 @@ async def video(file: UploadFile, sessionUID: Annotated[str, Depends(get_authent
         )
         if apiResult.status_code != 200:
             return JSONResponse(status_code=400, content={"message": "얼굴 인식 실패"})
-        
+
         result = apiResult.json()["result"]
         fileName = f"{user_id}_videos_{date.today().strftime('%Y%m%d')}{extension}"
 
         with open(os.path.join(DIR, fileName), "wb") as fp:
-            fp.write(content) 
-        
+            fp.write(content)
+
         # 경로 + 파일 반환
         return JSONResponse(status_code=200, content={
             "filename": fileName,
@@ -86,31 +90,32 @@ async def video(file: UploadFile, sessionUID: Annotated[str, Depends(get_authent
     except Exception as e:
         return JSONResponse(status_code=400, content={"message": str(e)})
 
-    
+
 @app.post(
-        "/api/v1/upload/image", description="이미지 업로드",
-        status_code=status.HTTP_200_OK, response_class=JSONResponse,
-        responses={
-            200: { "description": "성공" },
-            400: { "description": "실패" }
-        }, tags=["media"]
-    )
+    "/api/v1/upload/image", description="이미지 업로드",
+    status_code=status.HTTP_200_OK, response_class=JSONResponse,
+    responses={
+        200: {"description": "성공"},
+        400: {"description": "실패"}
+    }, tags=["media"]
+)
 async def image(file: UploadFile, sessionUID: Annotated[str, Depends(get_authenticated_user)]):
     DIR = "static/images/"
     try:
         content = await file.read()
         user_id = sessionUID
         extension = os.path.splitext(file.filename)[-1]
-        # 파일명 
-        apiResult = requests.post(GATE + "predict/image", files={"image": ("filename"+extension, content, "image/"+extension)}, headers={"Accept": "application/json"})
+        # 파일명
+        apiResult = requests.post(GATE + "predict/image", files={"image": (
+            "filename"+extension, content, "image/"+extension)}, headers={"Accept": "application/json"})
         if apiResult.status_code != 200:
-            return JSONResponse(status_code=400, content={"message": "얼굴 인식 실패"})
-        
+            return JSONResponse(status_code=400, content={"message": str(apiResult.json())})
+
         result = apiResult.json()["result"]
         fileName = f"{user_id}_videos_{date.today().strftime('%Y%m%d')}{extension}"
         with open(os.path.join(DIR, fileName), "wb") as fp:
             fp.write(content)
-        
+
         # 경로 + 파일 반환
         return JSONResponse(status_code=200, content={
             "filename": fileName,
