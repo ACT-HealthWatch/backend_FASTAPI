@@ -13,7 +13,7 @@ from src.service.middleware import *
 from src.database.user.user import *
 from src.database.user.crud import *
 
-secret_key = urandom(32)
+secret_key = "Hello_neighbor"
 hashCode = "Hello_neighbor"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440
