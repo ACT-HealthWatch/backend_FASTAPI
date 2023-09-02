@@ -60,7 +60,7 @@ async def nutirentWeekly(sessionUID: Annotated[str, Depends(get_authenticated_us
     responses={
         200: {"description": "성공"},
         400: {"description": "실패"}
-    }, tags=["user"]
+    }, tags=["nutrient"]
 )
 async def create(data: nutriData, sessionUID: Annotated[str, Depends(get_authenticated_user)]):
     try:
