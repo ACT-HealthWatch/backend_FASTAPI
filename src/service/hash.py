@@ -77,10 +77,12 @@ class hashData():
                     raise credentialsException
                 token_data = UserToken(username=user_id, access_token=token)
             except JWTError:
+                print('JWTError')
                 raise credentialsException
             
             user = UserCommands().read(session, UserTable, id=user_id)
             if user is None:
+                print('2')
                 raise credentialsException
             return token_data
         
@@ -89,6 +91,7 @@ async def get_authenticated_user(token: Annotated[UserToken, Depends(hashData().
     stored_token = SessionManager.get_user_session(user_id)
 
     if stored_token is None:
+        print('3')
         return {
             "message": "token is not valid"
         }
