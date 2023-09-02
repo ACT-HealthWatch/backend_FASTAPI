@@ -13,19 +13,22 @@ from src.service.middleware import *
 from src.database.user.user import *
 from src.database.user.crud import *
 
-secret_key = urandom(32)
+secret_key = os.environ.get("SECRET_KEY")
 hashCode = "Hello_neighbor"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440
 user_sessions = {}
 
+
 class TokenData(BaseModel):
     access_token: str
     token_type: str
 
+
 class UserToken(BaseModel):
     username: Union[str, None] = None
     access_token: Union[str, None] = None
+
 
 class SessionManager():
     @staticmethod
@@ -41,11 +44,12 @@ class SessionManager():
         print(user_sessions)
         return user_sessions.get(user_id)
 
+
 class hashData():
     @staticmethod
     def verify_password(plain, hashed):
         return oracle10.verify(hashCode, hashed, plain)
-    
+
     @staticmethod
     def get_password_hash(password):
         return oracle10.hash(hashCode, password)
@@ -57,11 +61,12 @@ class hashData():
             # timezone seoul
             expire = datetime.now(timezone(timedelta(hours=9))) + expires_delta
         else:
-            expire = datetime.now(timezone(timedelta(hours=9))) + timedelta(minutes=15)
+            expire = datetime.now(
+                timezone(timedelta(hours=9))) + timedelta(minutes=15)
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=ALGORITHM)
         return encoded_jwt
-    
+
     @staticmethod
     def verify_token(token: Annotated[str, Depends(oauth2Schema)]):
         with sessionFix() as session:
@@ -78,12 +83,13 @@ class hashData():
                 token_data = UserToken(username=user_id, access_token=token)
             except JWTError:
                 raise credentialsException
-            
+
             user = UserCommands().read(session, UserTable, id=user_id)
             if user is None:
                 raise credentialsException
             return token_data
-        
+
+
 async def get_authenticated_user(token: Annotated[UserToken, Depends(hashData().verify_token)]):
     user_id = token.username
     stored_token = SessionManager.get_user_session(user_id)
