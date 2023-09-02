@@ -24,7 +24,7 @@ from src.service.hash import *
 )
 async def nutirentAll(sessionUID: Annotated[str, Depends(get_authenticated_user)]):
     with sessionFix() as session:
-        result = NutriCommands().read(session, nutriTable, id=sessionUID)
+        result = NutriCommands().read(session, nutriTable, user_id=sessionUID)
         return result
 
 
@@ -38,7 +38,8 @@ async def nutirentAll(sessionUID: Annotated[str, Depends(get_authenticated_user)
 )
 async def nutirentAll(sessionUID: Annotated[str, Depends(get_authenticated_user)]):
     with sessionFix() as session:
-        result = NutriCommands().read(session, nutriTable, id=sessionUID, generated_time=7)
+        result = NutriCommands().read(session, nutriTable,
+                                      user_id=sessionUID, generated_time=7)
         return result
 
 
@@ -55,7 +56,6 @@ async def create(data: nutriData, sessionUID: Annotated[str, Depends(get_authent
         with sessionFix() as session:
             newData = nutriTable(
                 user_id=sessionUID,
-                generated_time=data.generated_time,
                 kcal=data.kcal,
                 carbohydrate=data.carbohydrate,
                 protein=data.protein,
