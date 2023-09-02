@@ -1,6 +1,7 @@
 import json
 
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from fastapi import status, Depends
 from typing_extensions import Annotated
 
@@ -43,10 +44,10 @@ async def nutirentWeekly(sessionUID: Annotated[str, Depends(get_authenticated_us
         json_results = [
             {
                 'date': result.date.isoformat(),
-                'total_kcal': result.total_kcal,
-                'total_carbs': result.total_carbs,
-                'total_protein': result.total_protein,
-                'total_fat': result.total_fat
+                'total_kcal': float(result.total_kcal),
+                'total_carbs': float(result.total_carbs),
+                'total_protein': float(result.total_protein),
+                'total_fat': float(result.total_fat)
             }
             for result in results
         ]
