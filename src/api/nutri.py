@@ -63,5 +63,5 @@ async def create(data: nutriData, sessionUID: Annotated[str, Depends(get_authent
             )
             result = NutriCommands().create(session, newData)
             return {"message": result}
-    except Exception:
-        return JSONResponse(status_code=400, content={"message": "invalid input data."})
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})

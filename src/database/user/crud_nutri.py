@@ -25,21 +25,20 @@ class NutriCommands:
             return tmpSession.query(where).filter_by(user_id=user_id).all()
         else:
             kst = pytz.timezone('Asia/Seoul')
-        current_time = datetime.now(kst)
-        seven_days_ago = current_time - timedelta(days=generated_time)
+            current_time = datetime.now(kst)
+            seven_days_ago = current_time - timedelta(days=generated_time)
 
-        query = (tmpSession.query(
-            func.date(where.generated_time).label('date'),
-            func.sum(where.kcal).label('total_kcal'),
-            func.sum(where.carbohydrate).label('total_carbs'),
-            func.sum(where.protein).label('total_protein'),
-            func.sum(where.fat).label('total_fat'))
-            .filter(where.user_id == user_id)
-            .filter(where.generated_time >= seven_days_ago)
-            .group_by(func.date(where.generated_time))
-            .all())
-
-        return query
+            query = (tmpSession.query(
+                func.date(where.generated_time).label('date'),
+                func.sum(where.kcal).label('total_kcal'),
+                func.sum(where.carbohydrate).label('total_carbs'),
+                func.sum(where.protein).label('total_protein'),
+                func.sum(where.fat).label('total_fat'))
+                .filter(where.user_id == user_id)
+                .filter(where.generated_time >= seven_days_ago)
+                .group_by(func.date(where.generated_time))
+                .all())
+            return query
 
     def delete(self, tmpSession, where, user_id: str, generated_time=None):
         try:
