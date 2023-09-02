@@ -36,11 +36,22 @@ async def nutirentAll(sessionUID: Annotated[str, Depends(get_authenticated_user)
         400: {"description": "실패"}
     }, tags=["nutrient"]
 )
-async def nutirentAll(sessionUID: Annotated[str, Depends(get_authenticated_user)]):
+async def nutirentWeekly(sessionUID: Annotated[str, Depends(get_authenticated_user)]):
     with sessionFix() as session:
-        result = NutriCommands().read(session, nutriTable,
-                                      user_id=sessionUID, generated_time=7)
-        return result
+        results = NutriCommands().read(session, nutriTable,
+                                       user_id=sessionUID, generated_time=7)
+        json_results = [
+            {
+                'date': result.date.isoformat(),
+                'total_kcal': result.total_kcal,
+                'total_carbs': result.total_carbs,
+                'total_protein': result.total_protein,
+                'total_fat': result.total_fat
+            }
+            for result in results
+        ]
+
+        return JSONResponse(content=json_results)
 
 
 @app.post(
