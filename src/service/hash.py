@@ -1,5 +1,5 @@
-from os import urandom
 from pydantic import BaseModel
+import redis
 
 from passlib.hash import oracle10
 from datetime import datetime, timedelta, timezone
@@ -8,7 +8,6 @@ from typing_extensions import Annotated
 from jose import JWTError, jwt
 
 from fastapi import Depends, HTTPException, status
-from fastapi.responses import JSONResponse
 from src.service.middleware import *
 from src.database.user.user import *
 from src.database.user.crud import *
@@ -17,7 +16,6 @@ secret_key = os.environ.get("SECRET_KEY")
 hashCode = "Hello_neighbor"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440
-user_sessions = {}
 
 
 class TokenData(BaseModel):
@@ -33,16 +31,25 @@ class UserToken(BaseModel):
 class SessionManager():
     @staticmethod
     def create_user_session(user_id: str, token: str):
-        user_sessions[user_id] = token
+        try:
+            redisController.set(user_id, token)
+        except Exception as e:
+            print(e)
 
     @staticmethod
     def delete_user_session(user_id: str):
-        user_sessions.pop(user_id, None)
+        try:
+            redisController.delete(user_id)
+        except Exception as e:
+            print(e)
 
     @staticmethod
     def get_user_session(user_id: str):
-        print(user_sessions)
-        return user_sessions.get(user_id)
+        data = redisController.get(user_id)
+        print(data)
+        if data is None:
+            return None
+        return data.decode('utf-8')
 
 
 class hashData():
